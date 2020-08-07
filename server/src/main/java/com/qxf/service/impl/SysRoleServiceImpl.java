@@ -20,6 +20,11 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysRoleDao sysRoleDao;
 
     @Override
+    public List<SysRole> queryAll(SysRole sysRole) {
+        return sysRoleDao.queryAll(sysRole);
+    }
+
+    @Override
     public List<SysRole> getRolesByUserId(String userId) {
         return sysRoleDao.getRolesByUserId(userId);
     }
@@ -48,9 +53,8 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @return 实例对象
      */
     @Override
-    public SysRole insert(SysRole sysRole) {
-        this.sysRoleDao.insert(sysRole);
-        return sysRole;
+    public int insert(SysRole sysRole) {
+        return sysRoleDao.insert(sysRole);
     }
 
     /**
@@ -60,9 +64,8 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @return 实例对象
      */
     @Override
-    public SysRole update(SysRole sysRole) {
-        this.sysRoleDao.update(sysRole);
-        return this.queryById(sysRole.getId());
+    public int update(SysRole sysRole) {
+        return sysRoleDao.update(sysRole);
     }
 
     /**
@@ -72,7 +75,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @return 是否成功
      */
     @Override
-    public boolean deleteById(String id) {
-        return this.sysRoleDao.deleteById(id) > 0;
+    public int deleteById(String id) {
+        return sysRoleDao.deleteById(id);
     }
 }

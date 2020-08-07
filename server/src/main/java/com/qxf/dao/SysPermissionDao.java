@@ -13,6 +13,9 @@ import java.util.List;
  */
 public interface SysPermissionDao {
 
+    // 根据用户id，查询权限列表
+    List<SysPermission> getPermissionListByUserId(@Param("userId") String userId);
+
     // 根据角色id集合，查询权限列表
     List<SysPermission> getPermissionListByRoleIds(List<String> roleIds);
 

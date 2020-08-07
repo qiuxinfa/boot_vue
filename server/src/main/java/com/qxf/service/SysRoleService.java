@@ -11,6 +11,13 @@ import java.util.List;
  * @since 2020-08-03 20:41:05
  */
 public interface SysRoleService {
+    /**
+     * 通过实体作为筛选条件查询
+     *
+     * @param sysRole 实例对象
+     * @return 对象列表
+     */
+    List<SysRole> queryAll(SysRole sysRole);
 
     // 根据用户id，查询角色列表
     List<SysRole> getRolesByUserId(String userId);
@@ -32,7 +39,7 @@ public interface SysRoleService {
      * @param sysRole 实例对象
      * @return 实例对象
      */
-    SysRole insert(SysRole sysRole);
+    int insert(SysRole sysRole);
 
     /**
      * 修改数据
@@ -40,7 +47,7 @@ public interface SysRoleService {
      * @param sysRole 实例对象
      * @return 实例对象
      */
-    SysRole update(SysRole sysRole);
+    int update(SysRole sysRole);
 
     /**
      * 通过主键删除数据
@@ -48,6 +55,6 @@ public interface SysRoleService {
      * @param id 主键
      * @return 是否成功
      */
-    boolean deleteById(String id);
+    int deleteById(String id);
 
 }

@@ -67,10 +67,10 @@ public class LoginController {
         try {
             authentication = authenticationManagerBuilder.getObject().authenticate(token);
         }catch (DisabledException e){
-            System.out.println("账号被禁止登录。。。。");
+            System.out.println("账号被禁止登录。。。。"+e.getMessage());
             return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"账号已被禁止登录，请联系管理员！");
         }catch (Exception e){
-            System.out.println("其他认证异常。。");
+            System.out.println("其他认证异常。。"+e.getMessage());
             return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"用户名或密码错误！");
         }
 
@@ -100,18 +100,9 @@ public class LoginController {
         if (userId == null || "".equals(userId)){
             userId = "1";
         }
-        //根据用户id，查询角色列表
-        List<SysRole> roles = sysRoleService.getRolesByUserId(userId);
-        List<SysPermission> permissions = new ArrayList<>();
-        if (roles != null && roles.size() > 0){
-            List<String> roleIds = new ArrayList<>(roles.size());
-            //根据角色id，查询权限列表
-            for (SysRole role : roles){
-                roleIds.add(role.getId());
-            }
-            sysPermissionService.getPermissionListByRoleIds(roleIds);
-        }
-        return new ResultUtil(EnumCode.OK.getValue(),permissions);
+        //根据用户id，查询菜单列表
+        List<SysPermission> menuList = sysPermissionService.selectMenuTreeByUserId(userId);
+        return new ResultUtil(EnumCode.OK.getValue(),menuList);
     }
 
     @PostMapping("/logout")

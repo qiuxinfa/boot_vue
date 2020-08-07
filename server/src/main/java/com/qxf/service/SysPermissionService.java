@@ -11,6 +11,13 @@ import java.util.List;
  * @since 2020-08-03 20:41:04
  */
 public interface SysPermissionService {
+
+    // 根据用户ID查询菜单
+    List<SysPermission> selectMenuTreeByUserId(String userId);
+
+    // 根据用户id，查询权限列表
+    List<SysPermission> getPermissionListByUserId(String userId);
+
     // 根据角色id集合，查询权限列表
     List<SysPermission> getPermissionListByRoleIds(List<String> roleIds);
 

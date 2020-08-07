@@ -22,3 +22,51 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function getMenu(userId) {
+  return request({
+    url: '/auth/menu',
+    method: 'get',
+    params: { userId }
+  })
+}
+
+export function getUserList(params) {
+  return request({
+    url: '/user/list',
+    method: 'get',
+    params
+  })
+}
+
+export function addUser(data) {
+  return request({
+    url: '/user/add',
+    method: 'post',
+    data
+  })
+}
+
+export function deleteUser(data) {
+  return request({
+    url: '/user/delete',
+    method: 'post',
+    data
+  })
+}
+
+export function updateUser(data) {
+  return request({
+    url: '/user/update',
+    method: 'post',
+    data
+  })
+}
+
+export function uploadImg(data) {
+  return request({
+    url: '/user/upload',
+    method: 'post',
+    data
+  })
+}

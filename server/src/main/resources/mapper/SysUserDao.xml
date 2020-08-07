@@ -34,48 +34,17 @@
     </select>
 
     <!--通过实体作为筛选条件查询-->
-    <select id="queryAll" resultMap="SysUserMap">
+    <select id="queryAll" resultType="com.qxf.entity.SysUser">
         select
-          id, is_valid, create_by, create_time, update_by, update_time, username, password, email, phone, avater, sex
-        from sys_user
-        <where>
-            <if test="id != null and id != ''">
-                and id = #{id}
-            </if>
-            <if test="isValid != null">
-                and is_valid = #{isValid}
-            </if>
-            <if test="createBy != null and createBy != ''">
-                and create_by = #{createBy}
-            </if>
-            <if test="createTime != null">
-                and create_time = #{createTime}
-            </if>
-            <if test="updateBy != null and updateBy != ''">
-                and update_by = #{updateBy}
-            </if>
-            <if test="updateTime != null">
-                and update_time = #{updateTime}
-            </if>
-            <if test="username != null and username != ''">
-                and username = #{username}
-            </if>
-            <if test="password != null and password != ''">
-                and password = #{password}
-            </if>
-            <if test="email != null and email != ''">
-                and email = #{email}
-            </if>
-            <if test="phone != null and phone != ''">
-                and phone = #{phone}
-            </if>
-            <if test="avater != null and avater != ''">
-                and avater = #{avater}
-            </if>
-            <if test="sex != null">
-                and sex = #{sex}
-            </if>
-        </where>
+          id, is_valid isValid, create_by createBy, create_time createTime, update_by updateBy, update_time updateTime,
+           username, password, email, phone, avater, sex,
+          (SELECT group_concat(r.id) from sys_role r,sys_user_role ur where r.id = ur.role_id and ur.user_id = u.id) as roleIds,
+          (SELECT group_concat(r.name) from sys_role r,sys_user_role ur where r.id = ur.role_id and ur.user_id = u.id) as roleName
+        from sys_user u
+          WHERE 1 = 1
+           <if test="username != null and username !=''">
+               and username LIKE concat('%',#{username},'%')
+           </if>
     </select>
 
     <!--新增所有列-->

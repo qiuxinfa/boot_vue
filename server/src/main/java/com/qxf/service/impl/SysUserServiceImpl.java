@@ -1,6 +1,10 @@
 package com.qxf.service.impl;
 
+import com.qxf.dao.SysPermissionDao;
+import com.qxf.dao.SysRoleDao;
 import com.qxf.dao.SysUserDao;
+import com.qxf.entity.SysPermission;
+import com.qxf.entity.SysRole;
 import com.qxf.entity.SysUser;
 import com.qxf.service.SysUserService;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,6 +26,13 @@ import java.util.List;
 public class SysUserServiceImpl implements SysUserService,UserDetailsService {
     @Resource
     private SysUserDao sysUserDao;
+
+    @Resource
+    private SysRoleDao sysRoleDao;
+
+    @Resource
+    private SysPermissionDao sysPermissionDao;
+
     /**
      * 通过用户名查询用户信息
      *
@@ -30,7 +42,28 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         SysUser user = sysUserDao.getUserByUsername(s);
+        if (user != null){
+            //设置角色
+            List<SysRole> roles = sysRoleDao.getRolesByUserId(user.getId());
+            user.setRoleList(roles);
+
+            // 设置权限，实现基于url的访问控制
+            List<SysPermission> permissions = new ArrayList<>();
+            if (roles != null && roles.size() > 0){
+                List<String> roleIds = new ArrayList<>(roles.size());
+                for (SysRole role : roles){
+                    roleIds.add(role.getId());
+                }
+                permissions = sysPermissionDao.getPermissionListByRoleIds(roleIds);
+            }
+            user.setPermissionList(permissions);
+        }
         return user;
+    }
+
+    @Override
+    public List<SysUser> queryAll(String username) {
+        return sysUserDao.queryAll(username);
     }
 
     /**
@@ -51,9 +84,8 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
      * @return 实例对象
      */
     @Override
-    public SysUser insert(SysUser sysUser) {
-        this.sysUserDao.insert(sysUser);
-        return sysUser;
+    public int insert(SysUser sysUser) {
+        return sysUserDao.insert(sysUser);
     }
 
     /**
@@ -63,9 +95,8 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
      * @return 实例对象
      */
     @Override
-    public SysUser update(SysUser sysUser) {
-        this.sysUserDao.update(sysUser);
-        return this.queryById(sysUser.getId());
+    public int update(SysUser sysUser) {
+        return sysUserDao.update(sysUser);
     }
 
     /**
@@ -75,8 +106,8 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
      * @return 是否成功
      */
     @Override
-    public boolean deleteById(String id) {
-        return this.sysUserDao.deleteById(id) > 0;
+    public int deleteById(String id) {
+        return this.sysUserDao.deleteById(id);
     }
 
 }

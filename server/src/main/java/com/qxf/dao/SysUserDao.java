@@ -31,10 +31,10 @@ public interface SysUserDao {
     /**
      * 通过实体作为筛选条件查询
      *
-     * @param sysUser 实例对象
+     * @param
      * @return 对象列表
      */
-    List<SysUser> queryAll(SysUser sysUser);
+    List<SysUser> queryAll(@Param("username") String username);
 
     /**
      * 新增数据

@@ -14,7 +14,7 @@ import java.util.List;
 public interface SysRoleDao {
 
     // 根据用户id，查询角色列表
-    List<SysRole> getRolesByUserId(String userId);
+    List<SysRole> getRolesByUserId(@Param("userId") String userId);
 
     // 获取角色下拉列表
     List<SysRole> getRoleList();

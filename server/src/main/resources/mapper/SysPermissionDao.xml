@@ -18,10 +18,54 @@
         <result property="sort" column="sort" jdbcType="INTEGER"/>
     </resultMap>
 
+    <!-- 根据用户id，查询权限列表-->
+    <select id="getPermissionListByUserId" resultMap="SysPermissionMap">
+        SELECT DISTINCT
+            p.id,
+            p.is_valid,
+            p.create_by,
+            p.create_time,
+            p.update_by,
+            p.update_time,
+            p.NAME,
+            p.url,
+            p.component,
+            p.icon,
+            p.type,
+            p.parent_id,
+            p.sort
+        FROM
+            sys_permission p,
+            sys_role_permission rp,
+            sys_role r,
+            sys_user_role ur
+        WHERE
+            p.is_valid = 1
+        AND p.type in (0,1)
+        AND r.is_valid = 1
+        AND p.id = rp.permission_id
+        AND rp.role_id = r.id
+        AND r.id = ur.role_id
+        AND ur.user_id = #{userId}
+        ORDER BY p.parent_id,p.sort
+    </select>
+
     <!-- 根据角色id集合，查询权限列表-->
     <select id="getPermissionListByRoleIds" resultMap="SysPermissionMap">
         SELECT
-          DISTINCT p.*
+          DISTINCT 	p.id,
+            p.is_valid,
+            p.create_by,
+            p.create_time,
+            p.update_by,
+            p.update_time,
+            p.NAME,
+            p.url,
+            p.component,
+            p.icon,
+            p.type,
+            p.parent_id,
+            p.sort
         FROM
         sys_permission p,
         sys_role_permission rp,

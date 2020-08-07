@@ -1,11 +1,14 @@
 package com.qxf.entity;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 用户(SysUser)实体类
@@ -64,6 +67,45 @@ public class SysUser implements UserDetails,Serializable {
     */
     private Integer sex;
 
+    //角色id
+    private String roleIds;
+    //角色名称
+    private String roleName;
+
+    public String getRoleIds() {
+        return roleIds;
+    }
+
+    public void setRoleIds(String roleIds) {
+        this.roleIds = roleIds;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    private List<SysRole> roleList = new ArrayList<>();
+    private List<SysPermission> permissionList = new ArrayList<>();
+
+    public List<SysRole> getRoleList() {
+        return roleList;
+    }
+
+    public void setRoleList(List<SysRole> roleList) {
+        this.roleList = roleList;
+    }
+
+    public List<SysPermission> getPermissionList() {
+        return permissionList;
+    }
+
+    public void setPermissionList(List<SysPermission> permissionList) {
+        this.permissionList = permissionList;
+    }
 
     public String getId() {
         return id;
@@ -134,7 +176,8 @@ public class SysUser implements UserDetails,Serializable {
 
     @Override
     public boolean isEnabled() {
-        return getIsValid() == 1;
+        int a = getIsValid() == null ? 0 : 1;
+        return a == 1;
     }
 
     public void setUsername(String username) {
@@ -144,7 +187,18 @@ public class SysUser implements UserDetails,Serializable {
     // 权限
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        // 实现基于url的访问控制
+        List<SimpleGrantedAuthority> list = null;
+        List<SysPermission> permissionList = getPermissionList();
+        if (permissionList !=null && permissionList.size() > 0){
+            list = new ArrayList<>(permissionList.size());
+            SimpleGrantedAuthority simpleGrantedAuthority = null;
+            for (SysPermission p : permissionList){
+                simpleGrantedAuthority = new SimpleGrantedAuthority(p.getUrl());
+                list.add(simpleGrantedAuthority);
+            }
+        }
+        return list;
     }
 
     public String getPassword() {

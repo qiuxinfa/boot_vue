@@ -1,7 +1,9 @@
 package com.qxf.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 权限(SysPermission)实体类
@@ -64,6 +66,15 @@ public class SysPermission implements Serializable {
     */
     private Integer sort;
 
+    private List<SysPermission> children = new ArrayList<>();
+
+    public List<SysPermission> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<SysPermission> children) {
+        this.children = children;
+    }
 
     public String getId() {
         return id;

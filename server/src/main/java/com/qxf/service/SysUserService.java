@@ -13,6 +13,13 @@ import java.util.List;
 public interface SysUserService {
 
     /**
+     * 通过实体作为筛选条件查询
+     *
+     * @param
+     * @return 对象列表
+     */
+    List<SysUser> queryAll(String username);
+    /**
      * 通过ID查询单条数据
      *
      * @param id 主键
@@ -26,7 +33,7 @@ public interface SysUserService {
      * @param sysUser 实例对象
      * @return 实例对象
      */
-    SysUser insert(SysUser sysUser);
+    int insert(SysUser sysUser);
 
     /**
      * 修改数据
@@ -34,7 +41,7 @@ public interface SysUserService {
      * @param sysUser 实例对象
      * @return 实例对象
      */
-    SysUser update(SysUser sysUser);
+    int update(SysUser sysUser);
 
     /**
      * 通过主键删除数据
@@ -42,6 +49,6 @@ public interface SysUserService {
      * @param id 主键
      * @return 是否成功
      */
-    boolean deleteById(String id);
+    int deleteById(String id);
 
 }
