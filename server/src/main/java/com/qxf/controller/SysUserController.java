@@ -8,18 +8,18 @@ import com.qxf.util.EnumCode;
 import com.qxf.util.ResultUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 用户(SysUser)表控制层
@@ -32,6 +32,13 @@ import java.util.UUID;
 public class SysUserController {
     private static Logger logger = LoggerFactory.getLogger(SysUserController.class);
     private  final static String rootPath = "D:/attachment/";
+
+    // 新增用户默认密码
+    @Value("${defaultPassword}")
+    private String defaultPassword;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * 服务对象
@@ -48,10 +55,12 @@ public class SysUserController {
     }
 
     @PostMapping("/add")
-    public ResultUtil addUser(@RequestBody SysUser user){
+    public ResultUtil addUser(@Valid @RequestBody SysUser user){
         String msg = "新增失败！";
         if (user != null){
             user.setId(UUID.randomUUID().toString().replace("-",""));
+            user.setPassword(passwordEncoder.encode(defaultPassword));
+            user.setCreateTime(new Date());
             Integer cnt = sysUserService.insert(user);
             if (cnt > 0){
                 msg = "新增成功！";
@@ -70,6 +79,7 @@ public class SysUserController {
         return new ResultUtil(EnumCode.OK.getValue(),msg);
     }
 
+    // @RequestBody 接收无法删除成功，原因未知
     @PostMapping("/delete")
     public ResultUtil deleteUser(String id){
         String msg = "0";

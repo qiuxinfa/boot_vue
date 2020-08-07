@@ -106,11 +106,6 @@
                 <el-form-item label="邮箱" prop="email">
                   <el-input type="text" placeholder="邮箱" auto-complete="off" v-model="ruleForm.email"></el-input>
                 </el-form-item>
-<!--                <el-form-item label="密码" prop="password">
-                  <el-input type="password" placeholder="密码以字母开头，长度在6~18之间，只能包含字符、数字和下划线" auto-complete="off" v-model="ruleForm.password"></el-input>
-                </el-form-item>
-                <el-form-item label="确认密码" prop="pass2">
-               <el-input type="password" placeholder="确认密码" auto-complete="off"  v-model="ruleForm.pass2"></el-input> -->
                <el-form-item label="头像"   prop="avater">
                <el-upload
                    class="avatar-uploader"
@@ -123,25 +118,35 @@
                  </el-upload>
                </el-form-item>
                 </el-form-item>
-                  <el-form-item label="角色" prop="role">
-                    <el-select v-model="ruleForm.roleName" filterable placeholder="请选择">
-                      <el-option
-                        v-for="item in roles"
-                        :key="item.name"
-                        :label="item.name"
-                        :value="item.id">
-                      </el-option>
-                   </el-select>
-                  </el-form-item>
-                  <el-form-item label="是否启用">
-                    <el-switch
-                      v-model="ruleForm.isValid"
-                      active-color="#13ce66"
-                      inactive-color="#ff4949"
-                      :active-value="activeValue"
-                      :inactive-value="inactiveValue">
-                    </el-switch>
-                  </el-form-item>
+                <el-form-item label="性别" prop="sex">
+                 <el-select v-model="ruleForm.sex" filterable>
+                    <el-option
+                      v-for="item in sexArr"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+                 </el-select>
+                </el-form-item>
+                <el-form-item label="角色" prop="role">
+                 <el-select multiple v-model="ruleForm.roleIds" filterable placeholder="请选择">
+                    <el-option
+                      v-for="item in roles"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id">
+                    </el-option>
+                 </el-select>
+                </el-form-item>
+                <el-form-item label="是否启用">
+                  <el-switch
+                    v-model="ruleForm.isValid"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    :active-value="activeValue"
+                    :inactive-value="inactiveValue">
+                  </el-switch>
+                </el-form-item>
               </el-form>
            </div>
            <div slot="footer" class="dialog-footer">
@@ -177,6 +182,10 @@ export default {
   data() {
     return {
      fileList: [],
+     sexArr:[
+       {value:1, label:"男"},
+       {value:2, label:"女"}
+      ],
      url: '',
       filters: {
       	keyword: ''
@@ -197,11 +206,11 @@ export default {
         id: '',
       	username: '',
       	password: '123456',  //默认密码
-      	// pass2: '',
+      	sex: 1,
       	email: '',
       	isValid: 1,
         avater: '',
-      	roleName: ''
+      	roleIds: ''
       },
       // 表单验证
       rules: {
@@ -213,8 +222,11 @@ export default {
           { required: true, message: '请输入邮箱地址' },
           { type: 'email', message: '请输入正确的邮箱地址' }
         ],
-        roleName: [
+        roleIds: [
           { required: true, message: '请选择用户角色', trigger: 'change' }
+        ],
+        sex: [
+          { required: true, message: '请选择性别', trigger: 'change' }
         ]
       },
      //新增or编辑弹框标题(根据点击的新增or编辑按钮显示不同的标题)
@@ -244,7 +256,7 @@ export default {
         this.list = response.data
         this.total = response.total
         this.listLoading = false
-        debugger
+        // debugger
       }).catch(err =>{
         this.listLoading = false
       })
@@ -269,8 +281,9 @@ export default {
      let formData = new FormData();
      formData.append("multipartFiles", file);
      uploadImg(formData).then(response => {
-       if(response.data.code == 200){
-         //console.log("返回的头像名："+response.data.data)
+       // debugger
+       if(response.code == 200){
+         console.log("返回的头像名："+response.data)
          this.ruleForm.avater = response.data
 
        }
@@ -307,19 +320,19 @@ export default {
     handleEdit(obj) {
       this.currentType = 'edit'
       this.ruleForm = obj
+      debugger
+      this.ruleForm.roleIds = obj.roleIds.split(',')
       //显示弹框
       this.dialogFormVisible = true;
      },
      // 执行添加
     doAdd(){
-       // let params = {
-       //   id: id,
-
-       // }
+      debugger
+       this.ruleForm.roleIds = this.ruleForm.roleIds.join(',')
        addUser(this.ruleForm).then(response => {
          let msg = "添加失败"
          let msgType = 'error'
-         if(response.data.code == 200){
+         if(response.code == 200){
            msg = "添加成功"
            msgType = 'success'
          }
@@ -340,14 +353,12 @@ export default {
      },
     // 执行更新
     doUpdate(){
-      // let params = {
-      //   id: id,
-
-      // }
+      debugger
+      this.ruleForm.roleIds = this.ruleForm.roleIds.join(',')
       updateUser(this.ruleForm).then(response => {
         let msg = "修改失败"
         let msgType = 'error'
-        if(response.data.code == 200){
+        if(response.code == 200){
           msg = "修改成功"
           msgType = 'success'
         }
@@ -371,10 +382,12 @@ export default {
       let params = {
         id: id
       }
+      debugger
       deleteUser(params).then(response => {
         let msg = "删除失败"
         let msgType = 'error'
-        if(response.data.code == 200 && response.data.msg == '1'){
+        debugger
+        if(response.code == 200 && response.msg == '1'){
           msg = "删除成功"
           msgType = 'success'
         }

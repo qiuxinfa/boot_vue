@@ -38,3 +38,6 @@ jwt:
   online-key: online-token
   # 验证码
   code-key: code-key
+
+# 新增用户默认密码
+defaultPassword: 123456

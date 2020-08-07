@@ -47,11 +47,11 @@ export function addUser(data) {
   })
 }
 
-export function deleteUser(data) {
+export function deleteUser(id) {
   return request({
     url: '/user/delete',
     method: 'post',
-    data
+    params: id
   })
 }
 

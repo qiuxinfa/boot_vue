@@ -61,6 +61,6 @@ public interface SysUserRoleDao {
      * @param id 主键
      * @return 影响行数
      */
-    int deleteById(String id);
+    int deleteById(@Param("userId") String userId);
 
 }

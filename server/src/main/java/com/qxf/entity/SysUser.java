@@ -4,6 +4,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +27,7 @@ public class SysUser implements UserDetails,Serializable {
     /**
     * 有效标志，1有效，0无效
     */
+    @NotNull
     private Integer isValid;
     /**
     * 创建者id
@@ -45,6 +48,7 @@ public class SysUser implements UserDetails,Serializable {
     /**
     * 用户名
     */
+    @NotNull
     private String username;
     /**
     * 密码
@@ -53,10 +57,12 @@ public class SysUser implements UserDetails,Serializable {
     /**
     * 邮箱
     */
+    @Email
     private String email;
     /**
     * 手机号码
     */
+
     private String phone;
     /**
     * 头像地址
@@ -65,9 +71,11 @@ public class SysUser implements UserDetails,Serializable {
     /**
     * 性别，1男，2女，3未知
     */
+    @NotNull
     private Integer sex;
 
     //角色id
+    @NotNull
     private String roleIds;
     //角色名称
     private String roleName;
