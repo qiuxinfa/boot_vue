@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -108,11 +109,15 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
      */
     @Override
     public int update(SysUser sysUser) {
-        // 先删除用户-角色关联表数据
-        sysUserRoleDao.deleteById(sysUser.getId());
+        String roleId = sysUser.getRoleIds();
+        // 如果要修改角色
+        if (!StringUtils.isEmpty(roleId)){
+            // 先删除用户-角色关联表数据
+            sysUserRoleDao.deleteById(sysUser.getId());
 
-        // 再插入新的角色
-        linkUserRole(sysUser);
+            // 再插入新的角色
+            linkUserRole(sysUser);
+        }
         sysUser.setUpdateTime(new Date());
         return sysUserDao.update(sysUser);
     }

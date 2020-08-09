@@ -44,6 +44,16 @@ public class SysRole implements Serializable {
     */
     private String description;
 
+    // 权限id集合
+    private String permissionIds;
+
+    public String getPermissionIds() {
+        return permissionIds;
+    }
+
+    public void setPermissionIds(String permissionIds) {
+        this.permissionIds = permissionIds;
+    }
 
     public String getId() {
         return id;

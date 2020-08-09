@@ -73,35 +73,29 @@
         WHERE p.is_valid = 1 and r.is_valid = 1
         AND p.id = rp.permission_id
         AND rp.role_id = r.id
-        AND r.id IN
-        <foreach collection="list" item="rid" index="index" open="(" close=")" separator=",">
-            #{rid}
-        </foreach>
-        ORDER BY
-        p.sort
+        <if test="list != null">
+            AND r.id IN
+            <foreach collection="list" item="rid" index="index" open="(" close=")" separator=",">
+                #{rid}
+            </foreach>
+        </if>
+        ORDER BY p.parent_id,p.sort
     </select>
+
 
     <!--查询单个-->
     <select id="queryById" resultMap="SysPermissionMap">
         select
           id, is_valid, create_by, create_time, update_by, update_time, name, url, component, icon, type, parent_id, sort
-        from boot_vue.sys_permission
+        from sys_permission
         where id = #{id}
-    </select>
-
-    <!--查询指定行数据-->
-    <select id="queryAllByLimit" resultMap="SysPermissionMap">
-        select
-          id, is_valid, create_by, create_time, update_by, update_time, name, url, component, icon, type, parent_id, sort
-        from boot_vue.sys_permission
-        limit #{offset}, #{limit}
     </select>
 
     <!--通过实体作为筛选条件查询-->
     <select id="queryAll" resultMap="SysPermissionMap">
         select
           id, is_valid, create_by, create_time, update_by, update_time, name, url, component, icon, type, parent_id, sort
-        from boot_vue.sys_permission
+        from sys_permission
         <where>
             <if test="id != null and id != ''">
                 and id = #{id}
@@ -122,7 +116,7 @@
                 and update_time = #{updateTime}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name LIKE concat('%',#{name},'%')
             </if>
             <if test="url != null and url != ''">
                 and url = #{url}
@@ -143,17 +137,29 @@
                 and sort = #{sort}
             </if>
         </where>
+        ORDER BY parent_id,sort
+    </select>
+
+    <!--根据权限类型查询所有权限-->
+    <select id="getAllPermissionList" resultType="com.qxf.entity.SysPermission">
+        SELECT * FROM sys_permission t where 1 = 1
+        <if test="list != null">
+            AND  t.type IN
+            <foreach collection="list" item="typeId" index="index" open="(" close=")" separator=",">
+                #{typeId}
+            </foreach>
+        </if>
     </select>
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into boot_vue.sys_permission(is_valid, create_by, create_time, update_by, update_time, name, url, component, icon, type, parent_id, sort)
-        values (#{isValid}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{name}, #{url}, #{component}, #{icon}, #{type}, #{parentId}, #{sort})
+        insert into sys_permission(id,is_valid, create_by, create_time, update_by, update_time, name, url, component, icon, type, parent_id, sort)
+        values (#{id},#{isValid}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{name}, #{url}, #{component}, #{icon}, #{type}, #{parentId}, #{sort})
     </insert>
 
     <!--通过主键修改数据-->
     <update id="update">
-        update boot_vue.sys_permission
+        update sys_permission
         <set>
             <if test="isValid != null">
                 is_valid = #{isValid},
@@ -197,7 +203,7 @@
 
     <!--通过主键删除-->
     <delete id="deleteById">
-        delete from boot_vue.sys_permission where id = #{id}
+        delete from sys_permission where id = #{id}
     </delete>
 
 </mapper>

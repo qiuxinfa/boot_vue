@@ -48,7 +48,7 @@
       </el-table-column>
       <el-table-column label="创建时间" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.createTime }}</span>
+          <span>{{ scope.row.createTime | dateFormat}}</span>
         </template>
       </el-table-column>
       <el-table-column label="允许登陆" align="center">
@@ -163,7 +163,7 @@
 import { getUserList,addUser,updateUser,deleteUser,uploadImg } from '@/api/user'
 import { getRoleList } from '@/api/role'
 import { getUserId } from '@/utils/auth'
-// import { formatDate } from '@/utils/date'
+import { formatDate } from '@/utils/date'
 
 export default {
   filters: {
@@ -176,7 +176,7 @@ export default {
       return statusMap[status]
     },
     dateFormat(time){
-      // return formatDate(new Date(time),'yyyy-MM-dd hh:mm:ss')
+      return formatDate(new Date(time),'yyyy-MM-dd hh:mm:ss')
     }
   },
   data() {
@@ -210,7 +210,7 @@ export default {
       	email: '',
       	isValid: 1,
         avater: '',
-      	roleIds: ''
+      	roleIds: []
       },
       // 表单验证
       rules: {
@@ -320,14 +320,19 @@ export default {
     handleEdit(obj) {
       this.currentType = 'edit'
       this.ruleForm = obj
-      debugger
-      this.ruleForm.roleIds = obj.roleIds.split(',')
+      if(obj.roleIds){
+        // 角色不为空，角色回显
+        this.ruleForm.roleIds = obj.roleIds.split(',')
+      }else{
+        this.ruleForm.roleIds = []
+      }
+
       //显示弹框
       this.dialogFormVisible = true;
      },
      // 执行添加
     doAdd(){
-      debugger
+      // debugger
        this.ruleForm.roleIds = this.ruleForm.roleIds.join(',')
        addUser(this.ruleForm).then(response => {
          let msg = "添加失败"
@@ -417,7 +422,7 @@ export default {
     //修改用户状态
     switchChange(status,id) {
       let params = {
-        enable: status,
+        isValid: status,
         id: id
       }
       updateUser(params).then(response => {

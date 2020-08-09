@@ -38,10 +38,11 @@
     </select>
 
     <!--通过实体作为筛选条件查询-->
-    <select id="queryAll" resultMap="SysRoleMap">
+    <select id="queryAll" resultType="com.qxf.entity.SysRole">
         select
-          id, is_valid, create_by, create_time, update_by, update_time, name, description
-        from sys_role
+          id, is_valid, create_by, create_time, update_by, update_time, name, description,
+        (select group_concat(rp.permission_id) from sys_role_permission rp where rp.role_id = r.id) permissionIds
+        from sys_role r
         <where>
             <if test="id != null and id != ''">
                 and id = #{id}
@@ -62,16 +63,16 @@
                 and update_time = #{updateTime}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name LIKE concat('%',#{name},'%')
             </if>
             <if test="description != null and description != ''">
-                and description = #{description}
+                and description LIKE concat('%',#{description},'%')
             </if>
         </where>
     </select>
 
     <!--新增所有列-->
-    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    <insert id="insert">
         insert into
            sys_role(id,is_valid, create_by, create_time, update_by, update_time, name, description)
         values (#{id},#{isValid}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{name}, #{description})

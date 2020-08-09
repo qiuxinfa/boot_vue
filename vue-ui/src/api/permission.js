@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getList(params) {
   return request({
-    url: '/role/list',
+    url: '/permission/list',
     method: 'get',
     params
   })
@@ -10,7 +10,7 @@ export function getList(params) {
 
 export function doAdd(data) {
   return request({
-    url: '/role/add',
+    url: '/permission/add',
     method: 'post',
     data
   })
@@ -18,7 +18,7 @@ export function doAdd(data) {
 
 export function doDelete(id) {
   return request({
-    url: '/role/delete',
+    url: '/permission/delete',
     method: 'post',
     params: id
   })
@@ -26,15 +26,16 @@ export function doDelete(id) {
 
 export function doUpdate(data) {
   return request({
-    url: '/role/update',
+    url: '/permission/update',
     method: 'post',
     data
   })
 }
 
-export function getRoleList() {
+export function getAllPermission(type) {
   return request({
-    url: '/role/getRoleList',
-    method: 'get'
+    url: '/permission/getAllPermission',
+    method: 'get',
+    params: type
   })
 }

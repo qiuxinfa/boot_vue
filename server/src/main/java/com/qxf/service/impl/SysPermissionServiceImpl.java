@@ -6,9 +6,7 @@ import com.qxf.service.SysPermissionService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 权限(SysPermission)表服务实现类
@@ -22,9 +20,12 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     private SysPermissionDao sysPermissionDao;
 
     @Override
-    public List<SysPermission> selectMenuTreeByUserId(String userId) {
-        // 查找出菜单或目录，再封装成树形结构
-        List<SysPermission> allMenu = sysPermissionDao.getPermissionListByUserId(userId);
+    public List<SysPermission> getAllPermissionList(List<Integer> typeList) {
+        return sysPermissionDao.getAllPermissionList(typeList);
+    }
+
+    @Override
+    public List<SysPermission> selectMenuTree(List<SysPermission> allMenu) {
         // 根目录
         List<SysPermission> rootMenu = new LinkedList<>();
 //        List<SysPermission> common = new LinkedList<>();
@@ -96,16 +97,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return this.sysPermissionDao.queryById(id);
     }
 
-    /**
-     * 查询多条数据
-     *
-     * @param offset 查询起始位置
-     * @param limit 查询条数
-     * @return 对象列表
-     */
     @Override
-    public List<SysPermission> queryAllByLimit(int offset, int limit) {
-        return this.sysPermissionDao.queryAllByLimit(offset, limit);
+    public List<SysPermission> queryAll(SysPermission sysPermission) {
+        return sysPermissionDao.queryAll(sysPermission);
     }
 
     /**
@@ -115,9 +109,10 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      * @return 实例对象
      */
     @Override
-    public SysPermission insert(SysPermission sysPermission) {
-        this.sysPermissionDao.insert(sysPermission);
-        return sysPermission;
+    public int insert(SysPermission sysPermission) {
+        sysPermission.setId(UUID.randomUUID().toString().replace("-",""));
+        sysPermission.setCreateTime(new Date());
+        return sysPermissionDao.insert(sysPermission);
     }
 
     /**
@@ -127,9 +122,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      * @return 实例对象
      */
     @Override
-    public SysPermission update(SysPermission sysPermission) {
-        this.sysPermissionDao.update(sysPermission);
-        return this.queryById(sysPermission.getId());
+    public int update(SysPermission sysPermission) {
+        sysPermission.setUpdateTime(new Date());
+        return sysPermissionDao.update(sysPermission);
     }
 
     /**
@@ -139,7 +134,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      * @return 是否成功
      */
     @Override
-    public boolean deleteById(String id) {
-        return this.sysPermissionDao.deleteById(id) > 0;
+    public int deleteById(String id) {
+        return sysPermissionDao.deleteById(id);
     }
 }

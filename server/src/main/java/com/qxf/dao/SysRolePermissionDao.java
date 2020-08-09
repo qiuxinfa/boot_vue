@@ -13,6 +13,9 @@ import java.util.List;
  */
 public interface SysRolePermissionDao {
 
+    // 通过角色id删除权限
+    int deleteByRoleId(@Param("roleId") String roleId);
+
     /**
      * 通过ID查询单条数据
      *

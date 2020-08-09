@@ -39,7 +39,6 @@ public class SysRoleController {
     public ResultUtil addUser(@RequestBody SysRole sysRole){
         String msg = "新增失败！";
         if (sysRole != null){
-            sysRole.setId(UUID.randomUUID().toString().replace("-",""));
             Integer cnt = sysRoleService.insert(sysRole);
             if (cnt > 0){
                 msg = "新增成功！";

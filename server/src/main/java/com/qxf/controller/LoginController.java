@@ -101,7 +101,9 @@ public class LoginController {
             userId = "1";
         }
         //根据用户id，查询菜单列表
-        List<SysPermission> menuList = sysPermissionService.selectMenuTreeByUserId(userId);
+        List<SysPermission> sysPermissions = sysPermissionService.getPermissionListByUserId(userId);
+        // 菜单树形化
+        List<SysPermission> menuList = sysPermissionService.selectMenuTree(sysPermissions);
         return new ResultUtil(EnumCode.OK.getValue(),menuList);
     }
 

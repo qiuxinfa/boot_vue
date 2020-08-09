@@ -11,9 +11,10 @@ import java.util.List;
  * @since 2020-08-03 20:41:04
  */
 public interface SysPermissionService {
-
-    // 根据用户ID查询菜单
-    List<SysPermission> selectMenuTreeByUserId(String userId);
+    // 获取所有的权限
+    List<SysPermission> getAllPermissionList(List<Integer> typeList);
+    // 菜单树形化
+    List<SysPermission> selectMenuTree(List<SysPermission> allMenu);
 
     // 根据用户id，查询权限列表
     List<SysPermission> getPermissionListByUserId(String userId);
@@ -30,13 +31,12 @@ public interface SysPermissionService {
     SysPermission queryById(String id);
 
     /**
-     * 查询多条数据
+     * 通过实体作为筛选条件查询
      *
-     * @param offset 查询起始位置
-     * @param limit 查询条数
+     * @param sysPermission 实例对象
      * @return 对象列表
      */
-    List<SysPermission> queryAllByLimit(int offset, int limit);
+    List<SysPermission> queryAll(SysPermission sysPermission);
 
     /**
      * 新增数据
@@ -44,7 +44,7 @@ public interface SysPermissionService {
      * @param sysPermission 实例对象
      * @return 实例对象
      */
-    SysPermission insert(SysPermission sysPermission);
+    int insert(SysPermission sysPermission);
 
     /**
      * 修改数据
@@ -52,7 +52,7 @@ public interface SysPermissionService {
      * @param sysPermission 实例对象
      * @return 实例对象
      */
-    SysPermission update(SysPermission sysPermission);
+    int update(SysPermission sysPermission);
 
     /**
      * 通过主键删除数据
@@ -60,6 +60,6 @@ public interface SysPermissionService {
      * @param id 主键
      * @return 是否成功
      */
-    boolean deleteById(String id);
+    int deleteById(String id);
 
 }

@@ -12,12 +12,13 @@ import java.util.List;
  * @since 2020-08-03 20:41:03
  */
 public interface SysPermissionDao {
-
+    // 获取所有的权限
+    List<SysPermission> getAllPermissionList(@Param("list") List<Integer> typeList);
     // 根据用户id，查询权限列表
     List<SysPermission> getPermissionListByUserId(@Param("userId") String userId);
 
     // 根据角色id集合，查询权限列表
-    List<SysPermission> getPermissionListByRoleIds(List<String> roleIds);
+    List<SysPermission> getPermissionListByRoleIds(@Param("list") List<String> roleIds);
 
     /**
      * 通过ID查询单条数据
@@ -26,15 +27,6 @@ public interface SysPermissionDao {
      * @return 实例对象
      */
     SysPermission queryById(String id);
-
-    /**
-     * 查询指定行数据
-     *
-     * @param offset 查询起始位置
-     * @param limit 查询条数
-     * @return 对象列表
-     */
-    List<SysPermission> queryAllByLimit(@Param("offset") int offset, @Param("limit") int limit);
 
 
     /**

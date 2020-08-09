@@ -114,19 +114,19 @@ public class TokenProvider implements InitializingBean {
             e.printStackTrace();
         } catch (ExpiredJwtException e) {
             logger.info("Expired JWT token.");
-            if (canRefreshToken()){
-//                // 在规定的过期时间内，可以刷新token
-////                String refreshToken = refreshTokenUtil.refreshToken(username, UserInfoUtil.getPasswordByUsername(username));
-////                logger.info("刷新token： "+refreshToken);
-//                try {
-////                    WebSocketServer.sendInfo(securityProperties.getTokenStartWith() + refreshToken,UserInfoUtil.getUserIdByUsername(username));
-//                }catch (IOException e1){
-//                    logger.info("推送刷新token失败");
-//                }
-            }else {
-                logger.info("token过期超过了 {} 分钟，无法刷新",refreshInterval/1000/60);
-                e.printStackTrace();
-            }
+//            if (canRefreshToken()){
+////                // 在规定的过期时间内，可以刷新token
+//////                String refreshToken = refreshTokenUtil.refreshToken(username, UserInfoUtil.getPasswordByUsername(username));
+//////                logger.info("刷新token： "+refreshToken);
+////                try {
+//////                    WebSocketServer.sendInfo(securityProperties.getTokenStartWith() + refreshToken,UserInfoUtil.getUserIdByUsername(username));
+////                }catch (IOException e1){
+////                    logger.info("推送刷新token失败");
+////                }
+//            }else {
+//                logger.info("token过期超过了 {} 分钟，无法刷新",refreshInterval/1000/60);
+//                e.printStackTrace();
+//            }
 
         } catch (UnsupportedJwtException e) {
             logger.info("Unsupported JWT token.");

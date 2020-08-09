@@ -2,8 +2,8 @@
   <div class="app-container">
 
     <el-form :inline="true" :model="filters" class="demo-form-inline">
-      <el-form-item label="用户名">
-        <el-input v-model="filters.keyword" placeholder="输入用户名查询"></el-input>
+      <el-form-item label="角色名称">
+        <el-input v-model="filters.keyword"></el-input>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" @click="queryData">查询</el-button>
@@ -31,27 +31,27 @@
           </template>
       </el-table-column>
       </el-table-column>
-      <el-table-column label="用户名" align="center">
+      <el-table-column label="角色名称" align="center">
         <template slot-scope="scope">
-          {{ scope.row.username }}
+          {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column label="邮箱"  align="center">
+      <el-table-column label="角色描述"  align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.email }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="角色" align="center">
-        <template slot-scope="scope">
-          {{ scope.row.roleName }}
+          <span>{{ scope.row.description }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.createTime }}</span>
+          <span>{{ scope.row.createTime | dateFormat}}</span>
         </template>
       </el-table-column>
-      <el-table-column label="允许登陆" align="center">
+      <el-table-column label="修改时间" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.updateTime | dateFormat}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="是否有效" align="center">
 			      <template slot-scope="scope">
 							<el-switch
 							  @change="switchChange(scope.row.isValid,scope.row.id)"
@@ -100,48 +100,34 @@
         :visible.sync="dialogFormVisible" >
           <div style="width:80%;margin: 0 auto">
             <el-form :model="ruleForm" status-icon :rules="rules"  ref="ruleForm" :inline="false" label-width="90px" class="demo-ruleForm">
-                <el-form-item label="用户名"   prop="username">
-                  <el-input type="text" placeholder="用户名" auto-complete="off" v-model="ruleForm.username"></el-input>
+                <el-form-item label="角色名称"   prop="name">
+                  <el-input type="text"  auto-complete="off" v-model="ruleForm.name"></el-input>
                 </el-form-item>
-                <el-form-item label="邮箱" prop="email">
-                  <el-input type="text" placeholder="邮箱" auto-complete="off" v-model="ruleForm.email"></el-input>
+                <el-form-item label="角色描述" prop="description">
+                  <el-input type="text" auto-complete="off" v-model="ruleForm.description"></el-input>
                 </el-form-item>
-<!--                <el-form-item label="密码" prop="password">
-                  <el-input type="password" placeholder="密码以字母开头，长度在6~18之间，只能包含字符、数字和下划线" auto-complete="off" v-model="ruleForm.password"></el-input>
+                <el-form-item label="权限">
+                  <el-tree
+                    :data="permissionList"
+                    show-checkbox
+                    default-expand-all
+                    ref="mytree"
+                    node-key="id"
+                    :props="treeProps"
+                    :default-checked-keys="defaultCheckedKeyArr"
+
+                    >
+                  </el-tree>
                 </el-form-item>
-                <el-form-item label="确认密码" prop="pass2">
-               <el-input type="password" placeholder="确认密码" auto-complete="off"  v-model="ruleForm.pass2"></el-input> -->
-               <el-form-item label="头像"   prop="avater">
-               <el-upload
-                   class="avatar-uploader"
-                   action="xxx"
-                   :show-file-list="false"
-                   :on-success="handleAvatarSuccess"
-                   :before-upload="beforeAvatarUpload">
-                   <img v-if="ruleForm.avater" :src="ruleForm.avater" class="avatar">
-                   <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                 </el-upload>
-               </el-form-item>
+                <el-form-item label="是否有效">
+                  <el-switch
+                    v-model="ruleForm.isValid"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    :active-value="activeValue"
+                    :inactive-value="inactiveValue">
+                  </el-switch>
                 </el-form-item>
-                  <el-form-item label="角色" prop="role">
-                    <el-select v-model="ruleForm.roleName" filterable placeholder="请选择">
-                      <el-option
-                        v-for="item in roles"
-                        :key="item.name"
-                        :label="item.name"
-                        :value="item.id">
-                      </el-option>
-                   </el-select>
-                  </el-form-item>
-                  <el-form-item label="是否启用">
-                    <el-switch
-                      v-model="ruleForm.isValid"
-                      active-color="#13ce66"
-                      inactive-color="#ff4949"
-                      :active-value="activeValue"
-                      :inactive-value="inactiveValue">
-                    </el-switch>
-                  </el-form-item>
               </el-form>
            </div>
            <div slot="footer" class="dialog-footer">
@@ -155,10 +141,9 @@
 </template>
 
 <script>
-import { getUserList,addUser,updateUser,deleteUser,uploadImg } from '@/api/user'
-import { getRoleList } from '@/api/role'
-import { getUserId } from '@/utils/auth'
-// import { formatDate } from '@/utils/date'
+import { getList,doAdd,doUpdate,doDelete } from '@/api/role'
+import { getAllPermission } from '@/api/permission'
+import { formatDate } from '@/utils/date'
 
 export default {
   filters: {
@@ -171,17 +156,15 @@ export default {
       return statusMap[status]
     },
     dateFormat(time){
-      // return formatDate(new Date(time),'yyyy-MM-dd hh:mm:ss')
+      return formatDate(new Date(time),'yyyy-MM-dd hh:mm:ss')
     }
   },
   data() {
     return {
      fileList: [],
-     url: '',
       filters: {
       	keyword: ''
       },
-      imageUrl: '',
       activeValue: 1,
       inactiveValue: 0,
       listLoading: false, // 加载等待
@@ -195,26 +178,16 @@ export default {
       dialogFormVisible:false,
       ruleForm: {
         id: '',
-      	username: '',
-      	password: '123456',  //默认密码
-      	// pass2: '',
-      	email: '',
-      	isValid: 1,
-        avater: '',
-      	roleName: ''
+      	name: '',
+      	description: '',
+        permissionIds: '',
+      	isValid: 1
       },
       // 表单验证
       rules: {
-        username: [
-          { required: true, message: '请输入用户名'},
-          { min: 2, max: 10, message: '长度在 5 到 12 个字符'}
-        ],
-        email: [
-          { required: true, message: '请输入邮箱地址' },
-          { type: 'email', message: '请输入正确的邮箱地址' }
-        ],
-        roleName: [
-          { required: true, message: '请选择用户角色', trigger: 'change' }
+        name: [
+          { required: true, message: '请输入权限名称'},
+          { min: 1, max: 50, message: '长度在 1 到 50 个字符'}
         ]
       },
      //新增or编辑弹框标题(根据点击的新增or编辑按钮显示不同的标题)
@@ -223,14 +196,18 @@ export default {
          view: "查看信息",
          edit: "修改信息"
      },
-     roles: [], //角色列表
-
-
+     treeProps: {
+       label: 'name',
+       children: 'children'
+     },
+     isExpandAll: true,
+     defaultCheckedKeyArr: [],
+     permissionList: [], //权限集合
     }
   },
   created() {
     this.fetchData()
-    this.getRoles()
+    this.getPermissions()
   },
   methods: {
     fetchData() {
@@ -238,23 +215,26 @@ export default {
       let params = {
         startPage: this.startPage,
         pageSize: this.pageSize,
-        username: this.filters.keyword
+        name: this.filters.keyword
       }
-      getUserList(params).then(response => {
+      getList(params).then(response => {
         this.list = response.data
         this.total = response.total
         this.listLoading = false
-        debugger
+        // debugger
       }).catch(err =>{
         this.listLoading = false
       })
     },
-    //获取角色列表
-    getRoles(){
-      getRoleList().then(response => {
-        this.roles = response.data
+    //获取权限集合
+    getPermissions(){
+      let params = {
+        type: '1'
+      }
+      getAllPermission(params).then(response => {
+        this.permissionList = response.data
       }).catch(err =>{
-         console.log("获取角色列表失败")
+         console.log("获取权限树失败")
       })
     },
     //查询
@@ -262,30 +242,22 @@ export default {
       this.fetchData()
     },
 
-    handleAvatarSuccess(res, file) {
-     // this.imageUrl = URL.createObjectURL(file.raw);
-    },
-    beforeAvatarUpload(file) {
-     let formData = new FormData();
-     formData.append("multipartFiles", file);
-     uploadImg(formData).then(response => {
-       if(response.data.code == 200){
-         //console.log("返回的头像名："+response.data.data)
-         this.ruleForm.avater = response.data
-
-       }
-     }).catch(err =>{
-       this.$message({
-                 message: '上传头像失败',
-                 type: 'error'
-               });
-     })
-    },
+    // // 树形下拉单选
+    // handleCheckChange (data, checked, indeterminate) {
+    //   /* 主要通过checked进行判断 */
+    //   if (checked) {
+    //     this.ruleForm.parentId = data.id
+    //     let arr = [data.id]
+    //     this.$refs.mytree.setCheckedKeys(arr)
+    //   }
+    // },
 
     // 表单提交
     submitForm(formName) {
     	this.$refs[formName].validate((valid) => {
     		if (valid) {
+          // 填充权限集合
+          this.fillPermissionIds()
     			if(this.currentType == 'add'){
             this.doAdd()
           }else if(this.currentType == 'edit'){
@@ -297,9 +269,18 @@ export default {
     		}
     	})
     },
+    // 填充权限集合
+    fillPermissionIds(){
+      this.ruleForm.permissionIds = this.$refs.mytree.getCheckedKeys().join(',')
+    },
      //新增
     handelAdd() {
       this.currentType = 'add'
+      this.ruleForm.permissionIds = ''
+      this.defaultCheckedKeyArr = []
+      this.$nextTick(() => {
+        this.$refs.mytree.setCheckedKeys(this.defaultCheckedKeyArr)
+      });
       //显示弹框
       this.dialogFormVisible = true;
      },
@@ -307,19 +288,23 @@ export default {
     handleEdit(obj) {
       this.currentType = 'edit'
       this.ruleForm = obj
+      this.defaultCheckedKeyArr = []
+      debugger
+      if(obj.permissionIds){
+        this.defaultCheckedKeyArr = obj.permissionIds.split(',')
+      }
+      this.$nextTick(() => {
+        this.$refs.mytree.setCheckedKeys(this.defaultCheckedKeyArr)
+      });
       //显示弹框
       this.dialogFormVisible = true;
      },
      // 执行添加
     doAdd(){
-       // let params = {
-       //   id: id,
-
-       // }
-       addUser(this.ruleForm).then(response => {
+       doAdd(this.ruleForm).then(response => {
          let msg = "添加失败"
          let msgType = 'error'
-         if(response.data.code == 200){
+         if(response.code == 200){
            msg = "添加成功"
            msgType = 'success'
          }
@@ -340,14 +325,10 @@ export default {
      },
     // 执行更新
     doUpdate(){
-      // let params = {
-      //   id: id,
-
-      // }
-      updateUser(this.ruleForm).then(response => {
+      doUpdate(this.ruleForm).then(response => {
         let msg = "修改失败"
         let msgType = 'error'
-        if(response.data.code == 200){
+        if(response.code == 200){
           msg = "修改成功"
           msgType = 'success'
         }
@@ -371,10 +352,12 @@ export default {
       let params = {
         id: id
       }
-      deleteUser(params).then(response => {
+      debugger
+      doDelete(params).then(response => {
         let msg = "删除失败"
         let msgType = 'error'
-        if(response.data.code == 200 && response.data.msg == '1'){
+        debugger
+        if(response.code == 200 && response.msg == '1'){
           msg = "删除成功"
           msgType = 'success'
         }
@@ -401,14 +384,14 @@ export default {
     	this.startPage = val
     	this.fetchData()
     },
-    //修改用户状态
+    //修改状态
     switchChange(status,id) {
       let params = {
-        enable: status,
+        isValid: status,
         id: id
       }
-      updateUser(params).then(response => {
-        let msg = status == 1 ? "已允许用户登录" : "已禁止用户登录"
+      doUpdate(params).then(response => {
+        let msg = status == 1 ? "已启用" : "已禁止"
         this.$message({
                   message: msg,
                   type: 'success'
@@ -417,7 +400,7 @@ export default {
         this.fetchData()
       }).catch(err =>{
         this.$message({
-                  message: '修改用户状态失败',
+                  message: '修改状态失败',
                   type: 'error'
                 });
       })
