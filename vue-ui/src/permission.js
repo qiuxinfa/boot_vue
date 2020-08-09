@@ -87,7 +87,7 @@ router.beforeEach(async(to, from, next) => {
     } else {
       const hasGetUserInfo = store.getters.name
       const hasGetMenuList = store.getters.menuList
-      debugger
+      // debugger
       if (hasGetMenuList) {
         next()
       } else {
@@ -104,7 +104,7 @@ router.beforeEach(async(to, from, next) => {
             // let finalRoutes = addCommonLayout(tmp)
             router.options.routes = finalRoutes
             router.addRoutes(finalRoutes)
-            debugger
+            // debugger
             next({ ...to, replace: true })
             // next()
           }).catch((err) => {

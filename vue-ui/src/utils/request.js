@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {Message } from 'element-ui'
+import { MessageBox,Message } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
@@ -16,9 +16,6 @@ service.interceptors.request.use(
     // do something before request is sent
 
     if (store.getters.token) {
-      // let each request carry token
-      // ['X-Token'] is a custom headers key
-      // please modify it according to the actual situation
       config.headers['Authorization'] = getToken()
     }
     return config
@@ -44,41 +41,58 @@ service.interceptors.response.use(
    */
   response => {
      const res = response.data
-    return  res
+     return res
+     // debugger
     // if the custom code is not 20000, it is judged as an error.
-    // if (res.code !== 20000) {
-    //   Message({
-    //     message: res.message || 'Error',
-    //     type: 'error',
-    //     duration: 5 * 1000
-    //   })
+    // if (res.code != 200) {
+    //   // Message({
+    //   //   message: res.message || 'Error',
+    //   //   type: 'error',
+    //   //   duration: 5 * 1000
+    //   // })
 
     //   // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
-    //   if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
+    //   if (res.code == 401) {
     //     // to re-login
-    //     MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
-    //       confirmButtonText: 'Re-Login',
-    //       cancelButtonText: 'Cancel',
+    //     MessageBox.confirm('登录信息已过期，你可以选择留在当前页面或重新登录', '登录过期', {
+    //       confirmButtonText: '重新登录',
+    //       cancelButtonText: '取消',
     //       type: 'warning'
     //     }).then(() => {
-    //       store.dispatch('user/resetToken').then(() => {
+    //       store.dispatch('user/logout').then(() => {
     //         location.reload()
     //       })
     //     })
+    //   }else{
+    //     return Promise.reject(new Error(res.msg || 'Error'))
     //   }
-    //   return Promise.reject(new Error(res.message || 'Error'))
+
     // } else {
     //   return res
     // }
   },
   error => {
-    console.log('err' + error) // for debug
-    Message({
-      message: error.message,
-      type: 'error',
-      duration: 5 * 1000
-    })
-    return Promise.reject(error)
+    // debugger
+    // console.log('err' + error) // for debug
+    if (error.response && error.response.status == 401) {
+      // to re-login
+      MessageBox.confirm('登录信息已过期，你可以选择留在当前页面或重新登录', '登录过期', {
+        confirmButtonText: '重新登录',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        store.dispatch('user/logout').then(() => {
+         location.reload()  // 为了重新实例化vue-router对象 避免bug
+        })
+      })
+    }else{
+      Message({
+        message: error.message,
+        type: 'error',
+        duration: 5 * 1000
+      })
+      return Promise.reject(error)
+    }
   }
 )
 
