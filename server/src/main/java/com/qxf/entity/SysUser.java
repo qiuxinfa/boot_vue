@@ -80,6 +80,26 @@ public class SysUser implements UserDetails,Serializable {
     //角色名称
     private String roleName;
 
+    // 验证码
+    private String code;
+    private String uuid;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
     public String getRoleIds() {
         return roleIds;
     }

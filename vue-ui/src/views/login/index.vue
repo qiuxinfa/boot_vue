@@ -41,6 +41,20 @@
         </span>
       </el-form-item>
 
+      <el-form-item prop="code">
+        <el-input
+          v-model="loginForm.code"
+          auto-complete="off"
+          placeholder="验证码"
+          style="width: 63%"
+          @keyup.enter.native="handleLogin"
+        >
+        </el-input>
+        <div class="login-code">
+          <img :src="imgUrl" @click="getValidateCode" class="login-code-img"/>
+        </div>
+      </el-form-item>
+
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
 
       <div class="tips">
@@ -54,6 +68,7 @@
 
 <script>
 // import { validUsername } from '@/utils/validate'
+import { getImgCode } from '@/api/user'
 
 export default {
   name: 'Login',
@@ -73,9 +88,12 @@ export default {
       }
     }
     return {
+      imgUrl: '',
       loginForm: {
         username: 'admin',
-        password: '123456'
+        password: '123456',
+        code: '',
+        uuid: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -85,6 +103,9 @@ export default {
       passwordType: 'password',
       redirect: undefined
     }
+  },
+  created() {
+    this.getValidateCode()
   },
   watch: {
     $route: {
@@ -118,11 +139,24 @@ export default {
             this.loading = false
           })
         } else {
+          this.getValidateCode()
           console.log('error submit!!')
           return false
         }
       })
+    },
+    getValidateCode(){
+      const that = this
+      getImgCode().then(res => {
+        that.imgUrl = res.data.imgUrl
+        that.loginForm.uuid = res.data.uuid
+        // debugger
+      }).catch(e => {
+        // debugger
+        alert("获取验证码失败")
+      })
     }
+
   }
 }
 </script>
@@ -235,5 +269,27 @@ $light_gray:#eee;
     cursor: pointer;
     user-select: none;
   }
+
+
+
+
+
 }
+
+
+  .login-code {
+    width: 33%;
+    height: 38px;
+    float: right;
+    img {
+      cursor: pointer;
+      vertical-align: middle;
+    }
+  }
+
+  .login-code-img {
+    height: 38px;
+    float: right;
+  }
+
 </style>

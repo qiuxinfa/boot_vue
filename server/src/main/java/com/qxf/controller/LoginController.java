@@ -13,7 +13,9 @@ import com.qxf.service.SysRoleService;
 import com.qxf.service.SysUserService;
 import com.qxf.util.EnumCode;
 import com.qxf.util.IPUtil;
+import com.qxf.util.RedisUtil;
 import com.qxf.util.ResultUtil;
+import com.wf.captcha.ArithmeticCaptcha;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName LoginController
@@ -57,10 +60,24 @@ public class LoginController {
     @Autowired
     private SecurityProperties securityProperties;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     //用户登录
     @PostMapping("/login")
     public ResultUtil login(@RequestBody SysUser user, HttpServletRequest request,
                             HttpServletResponse response) throws JsonProcessingException {
+        String uuid = user.getUuid();
+        String code = user.getCode();
+        String result = redisUtil.get(uuid);
+        if (result == null){
+            return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"验证码已过期");
+        }
+        if (!result.equals(code)){
+            return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"验证码不正确");
+        }
+
+
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
         Authentication authentication = null;
         //认证
@@ -109,7 +126,29 @@ public class LoginController {
 
     @PostMapping("/logout")
     public ResultUtil logout(){
+        SecurityContextHolder.clearContext();
         return new ResultUtil(EnumCode.OK.getValue(),"已退出登录！");
+    }
+
+    // 验证码
+    @GetMapping(value = "/code")
+    public ResultUtil getCode(){
+        // 算术类型 https://gitee.com/whvse/EasyCaptcha
+        ArithmeticCaptcha captcha = new ArithmeticCaptcha(111, 36);
+        // 几位数运算，默认是两位
+        captcha.setLen(2);
+        // 获取运算的结果
+        String result = captcha.text();
+        // 每次产生验证码的唯一标志
+        String uuid = UUID.randomUUID().toString().replace("-","");
+        // 保存，过期时间2分钟
+        redisUtil.set(uuid, result, 2L, TimeUnit.MINUTES);
+        // 验证码信息
+        Map<String,Object> imgResult = new HashMap<String,Object>(2){{
+            put("imgUrl", captcha.toBase64());
+            put("uuid", uuid);
+        }};
+        return new ResultUtil(EnumCode.OK.getValue(),imgResult);
     }
 
 }
