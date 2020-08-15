@@ -72,8 +72,27 @@ export function updateUser(data) {
 
 export function uploadImg(data) {
   return request({
-    url: '/user/upload',
+    url: '/file/upload',
     method: 'post',
     data
+  })
+}
+
+export function exportUser(params) {
+  return request({
+    url: '/user/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
+    // responseType: 'arraybuffer'
+  })
+}
+
+export function importUser(data) {
+  return request({
+    url: '/user/import',
+    method: 'post',
+    data,
+    headers: {'Content-Type': 'multipart/form-data' }
   })
 }

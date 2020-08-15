@@ -5,12 +5,13 @@ import com.github.pagehelper.PageInfo;
 import com.qxf.entity.SysUser;
 import com.qxf.service.SysUserService;
 import com.qxf.util.EnumCode;
+import com.qxf.util.ExcelUtil;
 import com.qxf.util.ResultUtil;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -30,8 +32,6 @@ import java.util.*;
 @RestController
 @RequestMapping("user")
 public class SysUserController {
-    private static Logger logger = LoggerFactory.getLogger(SysUserController.class);
-    private  final static String rootPath = "D:/attachment/";
 
     // 新增用户默认密码
     @Value("${defaultPassword}")
@@ -90,102 +90,98 @@ public class SysUserController {
         return new ResultUtil(EnumCode.OK.getValue(),msg);
     }
 
-    // 文件上传
-    @RequestMapping("/upload")
-    public Object uploadFile(MultipartFile[] multipartFiles){
-        String fileName = "";
-        File fileDir = new File(rootPath);
-        if (!fileDir.exists() && !fileDir.isDirectory()) {
-            fileDir.mkdirs();
-        }
-        try {
-            if (multipartFiles != null && multipartFiles.length > 0) {
-                for(int i = 0;i<multipartFiles.length;i++){
-                    try {
-                        //原文件名
-                        fileName = multipartFiles[i].getOriginalFilename();
-                        String suffixName = fileName.substring(fileName.lastIndexOf("."));
-                        //用UUID命名
-                        fileName = UUID.randomUUID().toString()+suffixName;
-                        String storagePath = rootPath + fileName;
-                        logger.info("上传的文件：" + multipartFiles[i].getName() + "," + multipartFiles[i].getContentType() + "," + multipartFiles[i].getOriginalFilename()
-                                +"，保存的路径为：" + storagePath);
-                        // 3种方法： 第1种
-//                        Streams.copy(multipartFiles[i].getInputStream(), new FileOutputStream(storagePath), true);
-                        // 第2种
-//                        Path path = Paths.get(storagePath);
-//                        Files.write(path,multipartFiles[i].getBytes());
-                        // 第3种
-                        multipartFiles[i].transferTo(new File(storagePath));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+    /**
+     * 导出报表
+     *
+     * @return
+     */
+    @GetMapping("/export")
+    @ResponseBody
+    public void export(String username,HttpServletResponse response) throws Exception {
+        //获取数据
+        List<SysUser> list = sysUserService.queryAll(username);
 
+        //excel标题
+        String[] title = {"姓名", "邮箱", "创建时间","角色","是否可用"};
+
+        //excel文件名
+        String fileName = System.currentTimeMillis() + ".xls";
+
+        //sheet名
+        String sheetName = "用户信息";
+
+        //没有数据就传入null吧，Excel工具类有对null判断
+        String [][] content = null;
+
+        if (list != null && list.size() > 0){
+            content = new String[list.size()][title.length];
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            for (int i = 0; i < list.size(); i++) {
+                content[i] = new String[title.length];
+                SysUser obj = list.get(i);
+                content[i][0] = obj.getUsername();
+                content[i][1] = obj.getEmail();
+                content[i][2] = obj.getCreateTime() == null ? "" : sdf.format(obj.getCreateTime());
+                content[i][3] = obj.getRoleName();
+                content[i][4] = obj.getIsValid() == 1 ? "是" : "否";
+            }
+        }
+
+        //创建HSSFWorkbook
+        HSSFWorkbook wb = ExcelUtil.getHSSFWorkbook(sheetName, title, content);
+
+        //响应到客户端
+        try {
+//            fileName = new String(fileName.getBytes(), "UTF-8");
+//            response.setContentType("application/vnd.ms-excel;charset=utf-8");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+            OutputStream os = response.getOutputStream();
+            wb.write(os);
+            os.flush();
+            os.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //前端可以通过状态码，判断文件是否上传成功
-        String imgURL = "http://localhost:8888/api/file/" + fileName;
-        return new ResultUtil(EnumCode.OK.getValue(),"文件上传成功",imgURL);
     }
+
 
     /**
+     * 批量导入用户
      *
-     * @param fileName 文件名
-     * @param response
-     * @return
      */
-    @RequestMapping("/download")
-    public Object downloadFile(@RequestParam String fileName, HttpServletResponse response){
-        OutputStream os = null;
-        InputStream is= null;
-        try {
-            // 取得输出流
-            os = response.getOutputStream();
-            // 清空输出流
-            response.reset();
-            response.setContentType("application/x-download;charset=utf-8");
-            //Content-Disposition中指定的类型是文件的扩展名，并且弹出的下载对话框中的文件类型图片是按照文件的扩展名显示的，点保存后，文件以filename的值命名，
-            // 保存类型以Content中设置的为准。注意：在设置Content-Disposition头字段之前，一定要设置Content-Type头字段。
-            //把文件名按UTF-8取出，并按ISO8859-1编码，保证弹出窗口中的文件名中文不乱码，中文不要太多，最多支持17个中文，因为header有150个字节限制。
-            response.setHeader("Content-Disposition", "attachment;filename="+ new String(fileName.getBytes("utf-8"),"ISO8859-1"));
-            //读取流
-            File f = new File(rootPath+fileName);
-            is = new FileInputStream(f);
-            if (is == null) {
-                logger.info("下载附件失败，请检查文件“" + fileName + "”是否存在");
-                return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"下载附件失败，请检查文件“" + fileName + "”是否存在");
-            }
-            //复制，后面修改，依赖，暂时关闭
-//            IOUtils.copy(is, response.getOutputStream());
-            response.getOutputStream().flush();
-        } catch (IOException e) {
-            return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"下载附件失败,error:"+e.getMessage());
+    @PostMapping("/import")
+    @ResponseBody
+    public ResultUtil ExcelImport(MultipartFile[] multipartFiles) throws Exception {
+        if (multipartFiles == null || multipartFiles.length < 1){
+            return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"空数据，导入失败");
         }
-        //文件的关闭放在finally中
-        finally
-        {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        for (MultipartFile file : multipartFiles){
+            List<String[]> list = ExcelUtil.readExcel(file);
+            if (list.isEmpty()){
+                return new ResultUtil(EnumCode.INTERNAL_SERVER_ERROR.getValue(),"空数据，导入失败");
             }
-            try {
-                if (os != null) {
-                    os.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            for (int i=0;i<list.size();i++){
+                String[] values = list.get(i);
+                //这里只导入了3列数据：姓名、邮箱和是否可用（0、1），其他列可自行导入，先转换格式再写入数据库，比如：
+                //导入角色的时候，根据角色名称查找角色id，如果角色id不存在，可以默认为学生之类的处理
+                SysUser user = new SysUser();
+                user.setUsername(values[0]);
+                user.setEmail(values[1]);
+                user.setIsValid("是".equals(values[2]) ? 1 : 0);
+                user.setCreateTime(new Date());
+                user.setId(UUID.randomUUID().toString().replace("-",""));
+                user.setPassword(passwordEncoder.encode(defaultPassword));
+                // 关联用户-角色表，角色默认为管理员
+                user.setRoleIds("1");
+                sysUserService.insert(user);
+
+
             }
         }
-        //其实，这个返回什么都不重要
-        return new ResultUtil(EnumCode.OK.getValue(),"下载成功");
+        //前端可以通过状态码，判断文件是否上传成功
+        return new ResultUtil(EnumCode.OK.getValue(),"数据导入成功");
     }
-
-
 
 }

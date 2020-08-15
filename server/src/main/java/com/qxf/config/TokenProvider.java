@@ -1,6 +1,8 @@
 package com.qxf.config;
 
-import com.qxf.config.SecurityProperties;
+import com.alibaba.fastjson.JSON;
+import com.qxf.entity.SysUser;
+import com.qxf.util.RedisUtil;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -36,6 +38,9 @@ public class TokenProvider implements InitializingBean {
 
     @Autowired
     private SecurityProperties securityProperties;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     private final SecurityProperties properties;
     private static final String AUTHORITIES_KEY = "auth";
@@ -100,8 +105,14 @@ public class TokenProvider implements InitializingBean {
                                 .map(SimpleGrantedAuthority::new)
                                 .collect(Collectors.toList());
 
-        User principal = new User(claims.getSubject(), "", authorities);
-
+        // 获取token中的用户名
+        String username = claims.getSubject();
+        // 根据用户名查询redis中缓存的用户信息
+        String userStr = redisUtil.get(username);
+        //解析JSON
+        SysUser principal = JSON.parseObject(userStr,SysUser.class);
+//        SysUser principal = (SysUser)JSON.parse(userStr);
+//        User principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 

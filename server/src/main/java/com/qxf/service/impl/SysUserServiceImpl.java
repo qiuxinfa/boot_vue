@@ -41,6 +41,7 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
     @Resource
     private SysUserRoleDao sysUserRoleDao;
 
+
     /**
      * 通过用户名查询用户信息
      *
@@ -66,6 +67,8 @@ public class SysUserServiceImpl implements SysUserService,UserDetailsService {
             }
             user.setPermissionList(permissions);
         }
+//        return new SysUser(user.get().getUserId(), user.get().getEmail(), user.get().getUsername(),
+//                user.get().getPhoneNo(), user.get().getPassword(), Boolean.TRUE, grantedAuthoritySet(user.get().getAuthorities()));
         return user;
     }
 

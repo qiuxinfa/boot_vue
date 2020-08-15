@@ -5,9 +5,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -29,6 +32,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private TokenFilter tokenFilter;
 
+    @Autowired
+    private UserDetailsService sysUserService;
+
+
 //    @Autowired
 //    private CorsFilter corsFilter;
 
@@ -39,12 +46,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         this.applicationContext = applicationContext;
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         // 密码加密方式
         return new BCryptPasswordEncoder();
     }
+
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.userDetailsService(sysUserService).passwordEncoder(
+//                passwordEncoder());
+//        super.configure(auth);
+//    }
 
     public static void main(String[] args) {
         System.out.println(new BCryptPasswordEncoder().encode("123456"));
@@ -62,6 +75,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // 账号相关，其中"/api/file/**"和头像上传相关
                 .antMatchers("/auth/**","/api/file/**").permitAll()
+                // 文件上传与下载
+                .antMatchers("/file/**").permitAll()
                 // webSocket
                 .antMatchers("/ws/**").permitAll()
                 // 诊断点

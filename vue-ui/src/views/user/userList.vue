@@ -11,6 +11,26 @@
       <el-form-item>
         <el-button type="primary" icon="el-icon-plus" @click="handelAdd">新增</el-button>
       </el-form-item>
+<!--      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" @click="handleImport">导入</el-button>
+      </el-form-item> -->
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-plus" @click="handleExport">导出</el-button>
+      </el-form-item>
+      <el-form-item>
+         <el-upload class="upload-demo"
+      				 :action="uploadUrl2"
+      				 :before-upload="handleBeforeUpload2"
+      				 :on-error="handleUploadError"
+      				 :before-remove="beforeRemove"
+      				 multiple
+      				 :limit="1"
+      				 :on-exceed="handleExceed"
+      				 accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+      				 :file-list="fileList">
+            <el-button size="small" type="primary">批量导入用户</el-button>
+         </el-upload>
+      </el-form-item>
     </el-form>
 
     <el-table
@@ -155,15 +175,15 @@
            </div>
    </el-dialog>
 
-
   </div>
 </template>
 
 <script>
-import { getUserList,addUser,updateUser,deleteUser,uploadImg } from '@/api/user'
+import { getUserList,addUser,updateUser,deleteUser,uploadImg,exportUser,importUser } from '@/api/user'
 import { getRoleList } from '@/api/role'
 import { getUserId } from '@/utils/auth'
 import { formatDate } from '@/utils/date'
+import axios from 'axios'
 
 export default {
   filters: {
@@ -236,7 +256,11 @@ export default {
          edit: "修改信息"
      },
      roles: [], //角色列表
-
+      // 导入参数
+     isAutoUpload: true,
+     uploadUrl: 'http://192.168.43.152:8089/file/upload',
+     uploadUrl2: 'http://localhost:8888/user/import',
+     fileList: [],
 
     }
   },
@@ -441,6 +465,110 @@ export default {
       })
     },
 
+    /** 导出按钮操作 */
+    handleExport() {
+       let params = {
+         username: this.filters.keyword
+       }
+       exportUser(params).then(res => {
+         debugger
+          const link = document.createElement('a')
+          let blob = new Blob([res],{type: 'application/vnd.ms-excel'});
+          link.style.display = 'none'
+          link.href = URL.createObjectURL(blob);
+          console.log("href:"+link.href)
+          let num = ''
+          for(let i=0;i < 10;i++){
+           num += Math.ceil(Math.random() * 10)
+          }
+          link.setAttribute('download', num + '.xls')
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+       }).catch(err =>{
+         debugger
+         console.log("导出失败")
+       })
+    },
+     //测试下载文件(注意web的上下文)
+     handleDownLoad() {
+       window.location.href = `/file/download?fileName=` + this.form.fileName
+     },
+     handleExceed(files, fileList) {
+        this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+      },
+     beforeRemove(file, fileList) {
+       return this.$confirm(`确定移除 ${ file.name }？`);
+     },
+     handleUploadError(error, file) {
+        console.log("文件上传出错："+error)
+     },
+     //测试上传文件(注意web的上下文)
+     handleBeforeUpload(file){
+      this.uploadUrl = 'http://192.168.43.152:8089/file/upload'
+      console.log("开始上传，上传的文件为："+file)
+      let formData = new FormData();
+      formData.append("multipartFiles", file);
+      axios({
+          method: 'post',
+          url: 'http://192.168.43.152:8089/file/upload',
+          data: formData,
+          headers: {'Content-Type': 'multipart/form-data' }
+        }).then((res) => {
+          console.log("文件上传返回："+res)
+        }).catch(error => {
+          console.log("文件上传异常:"+error)
+        })
+
+          // this.uploadUrl ='http://192.168.43.152:8089/file/upload'
+     },
+     //导入
+     handleBeforeUpload2(file){
+      debugger
+      this.fileTemp = file
+      let fileName = file.name
+      let fileType = fileName.substring(fileName.lastIndexOf('.') + 1);
+
+      // 判断上传文件格式
+      if (this.fileTemp) {
+        if ((fileType != 'xlsx') && (fileType != 'xls')) {
+          this.$message({
+            type: 'warning',
+            message: '附件格式错误，请删除后重新上传！'
+          })
+          return;
+        }
+      } else {
+        this.$message({
+          type: 'warning',
+          message: '请上传附件！'
+        })
+        return;
+      }
+
+      this.uploadUrl = 'http://localhost:8888/user/import'
+      console.log("开始上传，上传的文件为："+file)
+      let formData = new FormData();
+      formData.append("multipartFiles", file);
+      
+      importUser(formData).then(res => {
+         console.log("导入成功，返回："+res)
+      }).catch(e => {
+        console.log("导入失败")
+      })
+      // axios({
+      //     method: 'post',
+      //     url: 'http://localhost:8888/user/import',
+      //     data: formData,
+      //     headers: {'Content-Type': 'multipart/form-data' }
+      //   }).then((res) => {
+      //     console.log("文件上传返回："+res)
+      //   }).catch(error => {
+      //     console.log("文件上传异常:"+error)
+      //   })
+
+          // this.uploadUrl ='http://192.168.43.152:8089/file/upload'
+     },
 
   }
 }

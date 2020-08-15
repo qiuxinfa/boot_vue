@@ -1,5 +1,6 @@
 package com.qxf.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.qxf.config.SecurityProperties;
 import com.qxf.config.TokenProvider;
@@ -82,6 +83,7 @@ public class LoginController {
         Authentication authentication = null;
         //认证
         try {
+            // 该方法会去调用UserDetailsServiceImpl.loadUserByUsername
             authentication = authenticationManagerBuilder.getObject().authenticate(token);
         }catch (DisabledException e){
             System.out.println("账号被禁止登录。。。。"+e.getMessage());
@@ -102,6 +104,8 @@ public class LoginController {
         logger.info(user.getUsername()+" ：登录成功");
         // 记录登录日志
         SysUser currentUser = (SysUser)authentication.getPrincipal();
+        //缓存到redis
+        redisUtil.set(currentUser.getUsername(), JSON.toJSONString(currentUser));
         SysLoginLog loginLog = new SysLoginLog();
         loginLog.setId(UUID.randomUUID().toString().replace("-",""));
         loginLog.setLoginTime(new Date());
@@ -126,7 +130,7 @@ public class LoginController {
 
     @PostMapping("/logout")
     public ResultUtil logout(){
-        SecurityContextHolder.clearContext();
+//        SecurityContextHolder.clearContext();
         return new ResultUtil(EnumCode.OK.getValue(),"已退出登录！");
     }
 
