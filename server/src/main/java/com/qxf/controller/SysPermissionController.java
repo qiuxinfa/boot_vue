@@ -39,9 +39,11 @@ public class SysPermissionController {
     @PostMapping("/add")
     public ResultUtil addUser(@Valid @RequestBody SysPermission permission){
         String msg = "新增失败！";
-        Integer cnt = sysPermissionService.insert(permission);
+        int cnt = sysPermissionService.insert(permission);
         if (cnt > 0){
             msg = "新增成功！";
+        }else if (cnt == -1){
+            msg = "url不能重复";
         }
         return new ResultUtil(EnumCode.OK.getValue(),msg);
     }

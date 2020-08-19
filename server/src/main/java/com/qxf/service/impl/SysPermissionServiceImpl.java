@@ -112,6 +112,13 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public int insert(SysPermission sysPermission) {
         sysPermission.setId(UUID.randomUUID().toString().replace("-",""));
         sysPermission.setCreateTime(new Date());
+        // url的唯一性校验
+        List<SysPermission> permissionList = sysPermissionDao.queryAll(new SysPermission());
+        for (SysPermission permission : permissionList){
+            if (permission.getUrl() != null && permission.getUrl().equals(sysPermission.getUrl())){
+                return -1;
+            }
+        }
         return sysPermissionDao.insert(sysPermission);
     }
 
