@@ -91,7 +91,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.44</version>
+            <version>1.2.83</version>
         </dependency>
 
         <!-- excel导出需要的依赖POI-->
